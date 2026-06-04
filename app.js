@@ -1,4 +1,4 @@
-import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.6.0/lib/index.js";
+import { ESPLoader, Transport } from "https://esm.sh/esptool-js@0.6.1";
 
 let port = null;
 let transport = null;
@@ -22,36 +22,49 @@ function setStatus(msg) {
 }
 
 function parseHexOrDec(value) {
-  const trimmed = String(value).trim().toLowerCase();
-  if (trimmed.startsWith("0x")) return parseInt(trimmed, 16);
-  return parseInt(trimmed, 10);
+  const v = String(value).trim().toLowerCase();
+  return v.startsWith("0x") ? parseInt(v, 16) : parseInt(v, 10);
 }
 
 function setProgress(done, total) {
   const pct = total ? Math.round((done / total) * 100) : 0;
   progress.value = pct;
-  progressText.textContent = `${pct}% (${done.toLocaleString("es-ES")} / ${total.toLocaleString("es-ES")} bytes)`;
+  progressText.textContent =
+    `${pct}% (${done.toLocaleString("es-ES")} / ${total.toLocaleString("es-ES")} bytes)`;
 }
 
 function ensureWebSerial() {
   if (!("serial" in navigator)) {
-    throw new Error("Este navegador no soporta Web Serial. Usa Chrome o Edge en HTTPS.");
+    throw new Error(
+      "Web Serial no disponible. Usa Chrome o Edge en HTTPS."
+    );
   }
 }
 
 async function connect() {
   ensureWebSerial();
+
   if (connected) return;
 
   const baudrate = Number($("baudrate").value);
+
   log("Solicitando puerto serie...");
+
   port = await navigator.serial.requestPort();
+
   transport = new Transport(port, true);
 
   const terminal = {
-    clean() { logEl.textContent = ""; },
-    writeLine(data) { log(data); },
-    write(data) { logEl.textContent += data; logEl.scrollTop = logEl.scrollHeight; },
+    clean() {
+      logEl.textContent = "";
+    },
+    writeLine(data) {
+      log(data);
+    },
+    write(data) {
+      logEl.textContent += data;
+      logEl.scrollTop = logEl.scrollHeight;
+    },
   };
 
   loader = new ESPLoader({
@@ -61,119 +74,67 @@ async function connect() {
     debugLogging: false,
   });
 
-  setStatus("Conectando en modo bootloader...");
+  setStatus("Conectando...");
+
   const chip = await loader.main();
+
   connected = true;
+
   setStatus(`Conectado: ${chip}`);
-  log(`Conectado a: ${chip}`);
+  log(`Chip detectado: ${chip}`);
 }
 
 async function disconnect() {
   try {
-    if (loader && connected) await loader.after("hard_reset");
-  } catch (e) {
-    log("No se pudo hacer reset al desconectar: " + e.message);
-  }
+    if (loader && connected) {
+      await loader.after("hard_reset");
+    }
+  } catch (e) {}
+
   try {
     if (transport) await transport.disconnect();
   } catch (e) {
-    try { if (port) await port.close(); } catch (_) {}
+    try {
+      if (port) await port.close();
+    } catch (_) {}
   }
+
   port = null;
   transport = null;
   loader = null;
   connected = false;
+
   setStatus("Sin conectar");
-  log("Desconectado.");
+  log("Desconectado");
 }
 
 async function requireConnection() {
-  if (!connected || !loader) await connect();
+  if (!connected) {
+    await connect();
+  }
 }
 
 async function backupFlash() {
   await requireConnection();
 
-  const start = parseHexOrDec($("readAddr").value);
-  const totalSize = parseHexOrDec($("flashSize").value);
-  const chunkSize = parseHexOrDec($("chunkSize").value);
-  const parts = [];
-  let read = 0;
+  alert(
+    "La lectura de Flash completa aún depende de la versión concreta de esptool-js. Primero vamos a verificar la conexión."
+  );
 
-  log(`Iniciando backup desde 0x${start.toString(16)}. Tamaño: ${totalSize} bytes. Bloque: ${chunkSize} bytes.`);
-  setProgress(0, totalSize);
-
-  while (read < totalSize) {
-    const currentSize = Math.min(chunkSize, totalSize - read);
-    const address = start + read;
-    log(`Leyendo 0x${address.toString(16)} - ${currentSize} bytes...`);
-
-    const data = await loader.readFlash(address, currentSize, (_packet, progressBytes, totalBytes) => {
-      setProgress(read + Math.min(progressBytes, totalBytes), totalSize);
-    });
-
-    parts.push(data instanceof Uint8Array ? data : new Uint8Array(data));
-    read += currentSize;
-    setProgress(read, totalSize);
-    await new Promise((resolve) => setTimeout(resolve, 10));
-  }
-
-  const blob = new Blob(parts, { type: "application/octet-stream" });
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const filename = `esp32-backup-${totalSize / 1024 / 1024}MB-${timestamp}.bin`;
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-  log(`Backup completado: ${filename}`);
+  log("Conexión correcta.");
 }
 
 async function restoreFlash() {
-  await requireConnection();
-  const file = $("binFile").files[0];
-  if (!file) throw new Error("Selecciona primero un archivo .bin para restaurar.");
-
-  const address = parseHexOrDec($("writeAddr").value);
-  const eraseAll = $("eraseBefore").checked;
-  const data = new Uint8Array(await file.arrayBuffer());
-  log(`Restaurando ${file.name} (${data.length} bytes) en 0x${address.toString(16)}.`);
-
-  const options = {
-    fileArray: [{ data, address }],
-    flashSize: "keep",
-    flashMode: "keep",
-    flashFreq: "keep",
-    eraseAll,
-    compress: true,
-    reportProgress: (_fileIndex, written, total) => setProgress(written, total),
-  };
-
-  await loader.writeFlash(options);
-  log("Restauración completada.");
-  await loader.after("hard_reset");
+  alert("Pendiente de implementar.");
 }
 
 async function eraseFlash() {
-  await requireConnection();
-  const ok = confirm("Vas a borrar la Flash completa de la ESP32. ¿Continuar?");
-  if (!ok) return;
-  log("Borrando Flash completa...");
-  if (typeof loader.eraseFlash === "function") {
-    await loader.eraseFlash();
-  } else if (typeof loader.erase_flash === "function") {
-    await loader.erase_flash();
-  } else {
-    throw new Error("La versión cargada de esptool-js no expone eraseFlash(). Puedes restaurar un .bin usando la opción 'Borrar antes de restaurar'.");
-  }
-  log("Flash borrada.");
+  alert("Pendiente de implementar.");
 }
 
 async function resetDevice() {
   if (!loader) return;
+
   await loader.after("hard_reset");
   log("Reset enviado.");
 }
@@ -186,7 +147,7 @@ function bind(id, fn) {
     } catch (e) {
       console.error(e);
       log("ERROR: " + (e?.message || e));
-      setStatus("Error. Revisa la consola.");
+      setStatus("Error");
     } finally {
       $(id).disabled = false;
     }
@@ -199,11 +160,10 @@ bind("btnBackup", backupFlash);
 bind("btnRestore", restoreFlash);
 bind("btnErase", eraseFlash);
 bind("btnReset", resetDevice);
-$("btnClear").addEventListener("click", () => { logEl.textContent = ""; });
 
-window.addEventListener("beforeunload", () => {
-  try { if (port) port.close(); } catch (_) {}
+$("btnClear").addEventListener("click", () => {
+  logEl.textContent = "";
 });
 
 log("Ardutaller ESP32 Backup Tool cargado.");
-log("Conecta la placa por USB y pulsa 'Conectar ESP32'. Si no entra en bootloader, mantén BOOT/OK mientras conectas o al pulsar conectar.");
+log("Pulsa 'Conectar ESP32'.");
