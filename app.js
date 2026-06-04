@@ -1,4 +1,4 @@
-import { ESPLoader, Transport } from "https://esm.sh/esptool-js@0.6.1";
+import { ESPLoader, Transport } from "https://unpkg.com/esptool-js@0.6.0/bundle.js";
 
 let port = null;
 let transport = null;
