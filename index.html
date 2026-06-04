@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ardutaller ESP32 Backup Tool · WebSerial</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <div>
+        <p class="kicker">Ardutaller · WebSerial ESPTool</p>
+        <h1>Backup ESP32 · ED1</h1>
+        <p class="lead">Herramienta web para hacer una copia <strong>.bin</strong> completa de la memoria Flash de una ESP32/ED1 y restaurarla posteriormente.</p>
+      </div>
+      <div class="badge">Chrome / Edge<br><span>Web Serial</span></div>
+    </header>
+
+    <section class="notice">
+      <strong>Importante:</strong> úsalo solo con placas propias o con autorización. Para ED1 / ESP32-PICO-D4 suele utilizarse Flash de 4 MB. La restauración y el borrado modifican completamente la placa.
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>1. Conexión</h2>
+        <div class="row">
+          <label>Baudrate bootloader</label>
+          <select id="baudrate">
+            <option value="921600" selected>921600</option>
+            <option value="460800">460800</option>
+            <option value="230400">230400</option>
+            <option value="115200">115200</option>
+          </select>
+        </div>
+        <button id="btnConnect" class="primary">Conectar ESP32</button>
+        <button id="btnDisconnect">Desconectar</button>
+        <p id="status" class="status">Sin conectar</p>
+      </article>
+
+      <article class="card">
+        <h2>2. Copia de seguridad</h2>
+        <div class="row">
+          <label>Dirección inicial</label>
+          <input id="readAddr" value="0x000000" />
+        </div>
+        <div class="row">
+          <label>Tamaño Flash</label>
+          <select id="flashSize">
+            <option value="0x100000">1 MB</option>
+            <option value="0x200000">2 MB</option>
+            <option value="0x400000" selected>4 MB — ED1 / ESP32 habitual</option>
+            <option value="0x800000">8 MB</option>
+            <option value="0x1000000">16 MB</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Bloque de lectura</label>
+          <select id="chunkSize">
+            <option value="0x1000">4 KB, más compatible</option>
+            <option value="0x4000" selected>16 KB, recomendado</option>
+            <option value="0x10000">64 KB, más rápido</option>
+          </select>
+        </div>
+        <button id="btnBackup" class="primary">Leer Flash y descargar backup.bin</button>
+        <progress id="progress" value="0" max="100"></progress>
+        <p id="progressText">0%</p>
+      </article>
+
+      <article class="card danger-zone">
+        <h2>3. Restaurar o borrar</h2>
+        <div class="row">
+          <label>Archivo .bin</label>
+          <input id="binFile" type="file" accept=".bin,application/octet-stream" />
+        </div>
+        <div class="row">
+          <label>Dirección escritura</label>
+          <input id="writeAddr" value="0x000000" />
+        </div>
+        <label class="check"><input id="eraseBefore" type="checkbox" checked /> Borrar antes de restaurar</label>
+        <button id="btnRestore" class="danger">Restaurar .bin</button>
+        <button id="btnErase" class="danger ghost">Borrar Flash completa</button>
+      </article>
+
+      <article class="card">
+        <h2>Consola</h2>
+        <div class="console-actions">
+          <button id="btnClear">Limpiar consola</button>
+          <button id="btnReset">Reset</button>
+        </div>
+        <pre id="log"></pre>
+      </article>
+    </section>
+
+    <footer>
+      Diseño Ardutaller · Basado en <code>esptool-js</code> de Espressif. Funciona en Chrome/Edge con Web Serial y HTTPS, como GitHub Pages.
+    </footer>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
