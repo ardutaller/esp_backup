@@ -84,44 +84,47 @@ async function connect() {
   log(`Chip detectado: ${chip}`);
 }
 
-async function disconnect() {
-  try {
-    if (loader && connected) {
-      await loader.after("hard_reset");
-    }
-  } catch (e) {}
-
-  try {
-    if (transport) await transport.disconnect();
-  } catch (e) {
-    try {
-      if (port) await port.close();
-    } catch (_) {}
-  }
-
-  port = null;
-  transport = null;
-  loader = null;
-  connected = false;
-
-  setStatus("Sin conectar");
-  log("Desconectado");
-}
-
-async function requireConnection() {
-  if (!connected) {
-    await connect();
-  }
-}
-
 async function backupFlash() {
   await requireConnection();
 
-  alert(
-    "La lectura de Flash completa aún depende de la versión concreta de esptool-js. Primero vamos a verificar la conexión."
-  );
+  const start = parseHexOrDec($("readAddr").value);
+  const totalSize = parseHexOrDec($("flashSize").value);
+  const chunkSize = parseHexOrDec($("chunkSize").value);
 
-  log("Conexión correcta.");
+  const parts = [];
+  let read = 0;
+
+  log(`Iniciando backup desde 0x${start.toString(16)}. Tamaño: ${totalSize} bytes.`);
+  setProgress(0, totalSize);
+
+  while (read < totalSize) {
+    const currentSize = Math.min(chunkSize, totalSize - read);
+    const address = start + read;
+
+    log(`Leyendo 0x${address.toString(16)} - ${currentSize} bytes...`);
+
+    const data = await loader.readFlash(address, currentSize);
+
+    parts.push(data instanceof Uint8Array ? data : new Uint8Array(data));
+    read += currentSize;
+    setProgress(read, totalSize);
+  }
+
+  const blob = new Blob(parts, { type: "application/octet-stream" });
+  const filename = `esp32-backup-${totalSize / 1024 / 1024}MB.bin`;
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
+
+  log(`Backup completado: ${filename}`);
 }
 
 async function restoreFlash() {
