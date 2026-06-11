@@ -1,0 +1,108 @@
+[
+  {
+    "name": "Cocube Sigue la ruta",
+    "version": "1.0.0",
+    "device": "CoCube ESP32",
+    "description": "Firmware Sigue la ruta para CoCube.",
+    "builds": [
+      {
+        "chipFamily": "ESP32",
+        "parts": [
+          {
+            "path": "https://raw.githubusercontent.com/ardutaller/ardutaller-firmwares/main/ed1/cocube_sigue_ruta.bin",
+            "offset": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Cocube Programa Inicial fábrica",
+    "version": "1.0.0",
+    "device": "CoCube ESP32",
+    "description": "Firmware inicial de fábrica para CoCube.",
+    "builds": [
+      {
+        "chipFamily": "ESP32",
+        "parts": [
+          {
+            "path": "https://raw.githubusercontent.com/ardutaller/ardutaller-firmwares/main/ed1/firmware.bin",
+            "offset": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Programa 3",
+    "version": "1.0",
+    "date": "2026-06-05",
+    "device": "ED1 Original",
+    "description": "Firmware de ejemplo para ED1.",
+    "builds": [
+      {
+        "chipFamily": "ESP32",
+        "parts": [
+          {
+            "path": "https://raw.githubusercontent.com/ardutaller/ardutaller-firmwares/main/ed1/programa_inicial.bin",
+            "offset": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ED1 - Programa inicial",
+    "version": "1.0",
+    "date": "2026-06-05",
+    "device": "ED1 Original",
+    "description": "Firmware de ejemplo para ED1.",
+    "builds": [
+      {
+        "chipFamily": "ESP32",
+        "parts": [
+          {
+            "path": "https://raw.githubusercontent.com/ardutaller/ardutaller-firmwares/main/ed1/programa_inicial.bin",
+            "offset": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ED1 - Control App Ardutaller",
+    "version": "1.0",
+    "date": "2026-06-05",
+    "device": "ED1 Original",
+    "description": "Firmware de control desde app.",
+    "builds": [
+      {
+        "chipFamily": "ESP32",
+        "parts": [
+          {
+            "path": "https://raw.githubusercontent.com/ardutaller/ardutaller-firmwares/main/ed1/control_app.bin",
+            "offset": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "CoCube - Demo",
+    "version": "1.0",
+    "date": "2026-06-05",
+    "device": "CoCube ESP32",
+    "description": "Firmware de demostración para CoCube.",
+    "builds": [
+      {
+        "chipFamily": "ESP32",
+        "parts": [
+          {
+            "path": "https://raw.githubusercontent.com/ardutaller/ardutaller-firmwares/main/cocube/demo.bin",
+            "offset": 0
+          }
+        ]
+      }
+    ]
+  }
+]

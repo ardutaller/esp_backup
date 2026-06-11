@@ -1,0 +1,1255 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ardutaller www.steamtaller.es ESP32 Backup Tool · WebSerial</title>
+
+  <style>
+    :root{
+      --bg:#07111f;
+      --bg2:#101a33;
+      --card:rgba(255,255,255,.08);
+      --card2:rgba(255,255,255,.12);
+      --text:#eef7ff;
+      --muted:#a9bad3;
+      --cyan:#35e7ff;
+      --blue:#4f7cff;
+      --violet:#9b5cff;
+      --danger:#ff4d6d;
+      --ok:#4df2a4;
+      --border:rgba(255,255,255,.18);
+      --shadow:0 24px 80px rgba(0,0,0,.42);
+      --radius:24px;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(53,231,255,.28), transparent 32%),
+        radial-gradient(circle at 85% 0%, rgba(155,92,255,.30), transparent 34%),
+        radial-gradient(circle at 50% 100%, rgba(79,124,255,.22), transparent 38%),
+        linear-gradient(135deg,var(--bg),var(--bg2));
+      overflow-x:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size:38px 38px;
+      mask-image:linear-gradient(to bottom, rgba(0,0,0,.9), transparent 85%);
+    }
+
+    .wrap{
+      width:min(1180px,calc(100% - 32px));
+      margin:0 auto;
+      padding:42px 0 32px;
+      position:relative;
+    }
+
+    .hero{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:24px;
+      padding:34px;
+      margin-bottom:22px;
+      border:1px solid var(--border);
+      border-radius:calc(var(--radius) + 8px);
+      background:linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.05));
+      box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.14);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+    }
+
+    .kicker{
+      margin:0 0 10px;
+      color:var(--cyan);
+      font-size:.86rem;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+    }
+
+    h1{
+      margin:0;
+      font-size:clamp(2rem,4vw,4.4rem);
+      line-height:1;
+      letter-spacing:-.06em;
+      text-wrap:balance;
+    }
+
+    .lead{
+      max-width:760px;
+      margin:18px 0 0;
+      color:var(--muted);
+      font-size:1.08rem;
+      line-height:1.7;
+    }
+
+    .badge{
+      min-width:160px;
+      padding:18px;
+      text-align:center;
+      border-radius:22px;
+      background:linear-gradient(135deg, rgba(53,231,255,.18), rgba(155,92,255,.18));
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow:0 0 28px rgba(53,231,255,.14);
+      color:#fff;
+      font-weight:900;
+    }
+
+    .badge span{
+      color:var(--cyan);
+      font-size:.9rem;
+    }
+
+    .notice{
+      margin:0 0 22px;
+      padding:18px 20px;
+      border:1px solid rgba(53,231,255,.28);
+      border-radius:22px;
+      background:rgba(53,231,255,.08);
+      color:#dffbff;
+      box-shadow:0 0 34px rgba(53,231,255,.08);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+    }
+
+    .card{
+      padding:24px;
+      border-radius:var(--radius);
+      background:linear-gradient(180deg, var(--card2), var(--card));
+      border:1px solid var(--border);
+      box-shadow:0 18px 60px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.09);
+      backdrop-filter:blur(16px);
+      -webkit-backdrop-filter:blur(16px);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .card::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:radial-gradient(circle at 20% 0%, rgba(53,231,255,.10), transparent 35%);
+    }
+
+    .card > *{position:relative; z-index:1}
+
+    h2{
+      margin:0 0 18px;
+      font-size:1.25rem;
+      letter-spacing:-.02em;
+    }
+
+    .row{
+      display:grid;
+      gap:8px;
+      margin:14px 0;
+    }
+
+    label{
+      color:#d6e7ff;
+      font-weight:750;
+      font-size:.92rem;
+    }
+
+    input,select{
+      width:100%;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(5,12,25,.62);
+      color:var(--text);
+      border-radius:15px;
+      padding:13px 14px;
+      outline:none;
+      font:inherit;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    input:focus,select:focus{
+      border-color:rgba(53,231,255,.75);
+      box-shadow:0 0 0 4px rgba(53,231,255,.12);
+    }
+
+    button{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.16);
+      color:var(--text);
+      background:rgba(255,255,255,.09);
+      border-radius:16px;
+      padding:13px 16px;
+      margin:8px 8px 0 0;
+      font:inherit;
+      font-weight:850;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+
+    button:hover{
+      transform:translateY(-2px);
+      background:rgba(255,255,255,.14);
+      box-shadow:0 12px 30px rgba(0,0,0,.25);
+    }
+
+    .primary{
+      border:0;
+      color:#03121b;
+      background:linear-gradient(135deg,var(--cyan),#7cf7d4);
+      box-shadow:0 0 26px rgba(53,231,255,.28);
+    }
+
+    .danger{
+      border:0;
+      color:#fff;
+      background:linear-gradient(135deg,var(--danger),#ff8a4d);
+      box-shadow:0 0 24px rgba(255,77,109,.22);
+    }
+
+    .danger.ghost{
+      background:rgba(255,77,109,.12);
+      border:1px solid rgba(255,77,109,.35);
+      color:#ffdce4;
+    }
+
+    .status{
+      display:inline-flex;
+      margin:16px 0 0;
+      padding:9px 13px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      color:var(--muted);
+      border:1px solid rgba(255,255,255,.13);
+    }
+
+    .check{
+      display:flex;
+      align-items:center;
+      gap:9px;
+      margin-top:12px;
+    }
+
+    .check input{
+      width:auto;
+      accent-color:#35e7ff;
+    }
+
+    progress{
+      width:100%;
+      height:16px;
+      margin-top:18px;
+      border:0;
+      border-radius:999px;
+      overflow:hidden;
+      background:rgba(255,255,255,.10);
+    }
+
+    progress::-webkit-progress-bar{background:rgba(255,255,255,.10)}
+    progress::-webkit-progress-value{
+      background:linear-gradient(90deg,var(--cyan),var(--violet));
+      border-radius:999px;
+    }
+
+    #progressText{
+      color:var(--muted);
+      margin:8px 0 0;
+      font-weight:800;
+    }
+
+    .console-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      margin-bottom:12px;
+    }
+
+    #log{
+      min-height:230px;
+      max-height:380px;
+      overflow:auto;
+      padding:16px;
+      border-radius:18px;
+      background:rgba(0,0,0,.42);
+      border:1px solid rgba(255,255,255,.12);
+      color:#bff9ff;
+      font-size:.88rem;
+      line-height:1.5;
+      white-space:pre-wrap;
+    }
+
+    footer{
+      margin-top:22px;
+      text-align:center;
+      color:var(--muted);
+      font-size:.94rem;
+    }
+
+    code{
+      color:var(--cyan);
+      background:rgba(53,231,255,.08);
+      padding:.15em .35em;
+      border-radius:.45em;
+    }
+
+    .ardutaller-logo-link{
+      position:fixed;
+      top:18px;
+      right:18px;
+      z-index:9999;
+      width:220px;
+      height:220px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.28);
+      box-shadow:
+        0 0 46px rgba(53,231,255,.58),
+        0 0 28px rgba(155,92,255,.38),
+        inset 0 0 22px rgba(255,255,255,.08);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      transition:transform .25s ease, box-shadow .25s ease, background .25s ease;
+      animation: ardutallerFloat 4.2s ease-in-out infinite;
+    }
+
+    .ardutaller-logo-link::before{
+      content:"";
+      position:absolute;
+      inset:-18px;
+      border-radius:50%;
+      background:conic-gradient(from 90deg, rgba(53,231,255,.75), rgba(155,92,255,.58), rgba(77,242,164,.55), rgba(53,231,255,.75));
+      filter:blur(13px);
+      opacity:.72;
+      z-index:-1;
+      animation: ardutallerHalo 5.5s linear infinite;
+    }
+
+    .ardutaller-logo-link::after{
+      content:"Visita Ardutaller";
+      position:absolute;
+      right:0;
+      top:235px;
+      white-space:nowrap;
+      padding:9px 13px;
+      border-radius:999px;
+      color:#03121b;
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.02em;
+      background:linear-gradient(135deg,var(--cyan),#7cf7d4);
+      box-shadow:0 0 22px rgba(53,231,255,.35);
+      opacity:0;
+      transform:translateY(-6px) scale(.96);
+      pointer-events:none;
+      transition:.22s ease;
+    }
+
+    .ardutaller-logo-link:hover{
+      transform:translateY(-5px) scale(1.07) rotate(1.5deg);
+      background:rgba(255,255,255,.16);
+      box-shadow:
+        0 0 62px rgba(53,231,255,.78),
+        0 0 38px rgba(155,92,255,.55),
+        inset 0 0 26px rgba(255,255,255,.11);
+      animation-play-state:paused;
+    }
+
+    .ardutaller-logo-link:hover::after{
+      opacity:1;
+      transform:translateY(0) scale(1);
+    }
+
+    .ardutaller-logo-link img{
+      width:195px;
+      height:195px;
+      object-fit:contain;
+      display:block;
+      border-radius:50%;
+      background:transparent;
+      filter:drop-shadow(0 0 12px rgba(53,231,255,.30));
+      transition:transform .25s ease, filter .25s ease;
+    }
+
+    .ardutaller-logo-link:hover img{
+      transform:scale(1.03);
+      filter:drop-shadow(0 0 18px rgba(53,231,255,.50));
+    }
+
+    @keyframes ardutallerFloat{
+      0%,100%{ transform:translateY(0); }
+      50%{ transform:translateY(-8px); }
+    }
+
+    @keyframes ardutallerHalo{
+      from{ transform:rotate(0deg) scale(1); }
+      50%{ transform:rotate(180deg) scale(1.04); }
+      to{ transform:rotate(360deg) scale(1); }
+    }
+
+
+@media (max-width:820px){
+      .wrap{
+        width:min(100% - 22px, 1180px);
+        padding-top:150px;
+      }
+
+      .hero{
+        display:block;
+        padding:24px;
+      }
+
+      .badge{
+        margin-top:20px;
+        width:max-content;
+      }
+
+      .grid{
+        grid-template-columns:1fr;
+      }
+      .ardutaller-logo-link{
+        width:120px;
+        height:120px;
+        top:10px;
+        right:10px;
+      }
+
+      .ardutaller-logo-link img{
+        width:105px;
+        height:105px;
+      }
+
+      .ardutaller-logo-link::after{
+        display:none;
+      }
+
+      .ardutaller-logo-link::before{
+        inset:-6px;
+        filter:blur(10px);
+      }
+
+    }
+
+    /* Pantallas emergentes de advertencia y progreso: solo para Restaurar .bin y Borrar Flash */
+    .danger-modal-overlay{
+      position:fixed;
+      inset:0;
+      z-index:10000;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:rgba(0,0,0,.72);
+      backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
+    }
+
+    .danger-modal-overlay.is-open{
+      display:flex;
+    }
+
+    .danger-modal{
+      width:min(860px,100%);
+      max-height:min(86vh,760px);
+      overflow:hidden;
+      border-radius:26px;
+      border:1px solid rgba(255,255,255,.20);
+      background:linear-gradient(180deg, rgba(16,26,51,.98), rgba(7,17,31,.98));
+      box-shadow:0 30px 120px rgba(0,0,0,.65), 0 0 45px rgba(255,77,109,.20);
+    }
+
+    .danger-modal-header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      padding:22px 24px;
+      border-bottom:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(135deg, rgba(255,77,109,.24), rgba(255,138,77,.10));
+    }
+
+    .danger-modal-title{
+      margin:0;
+      font-size:1.25rem;
+      letter-spacing:-.02em;
+    }
+
+    .danger-modal-subtitle{
+      margin:8px 0 0;
+      color:#ffdce4;
+      line-height:1.45;
+    }
+
+    .danger-modal-close{
+      margin:0;
+      min-width:44px;
+      height:44px;
+      border-radius:999px;
+      padding:0;
+      background:rgba(255,255,255,.10);
+      color:#fff;
+      font-size:1.3rem;
+    }
+
+    .danger-modal-body{
+      padding:22px 24px 24px;
+    }
+
+    .danger-warning-list{
+      margin:0 0 18px;
+      padding-left:20px;
+      color:#fff0f3;
+      line-height:1.65;
+    }
+
+    .danger-modal-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:18px;
+    }
+
+    .modal-console{
+      min-height:280px;
+      max-height:52vh;
+      overflow:auto;
+      padding:16px;
+      border-radius:18px;
+      background:rgba(0,0,0,.52);
+      border:1px solid rgba(255,255,255,.14);
+      color:#bff9ff;
+      font-size:.88rem;
+      line-height:1.5;
+      white-space:pre-wrap;
+    }
+
+    .modal-progress-copy{
+      margin:0 0 12px;
+      color:#ffdce4;
+      font-weight:800;
+    }
+
+  </style>
+</head>
+<body>
+  <a class="ardutaller-logo-link" href="https://www.ardutaller.com.es/" target="_blank" rel="noopener" title="Ir a Ardutaller">
+    <img src="https://raw.githubusercontent.com/ardutaller/images/main/robot_circulo_.png" alt="Logo Ardutaller" />
+  </a>
+
+  <main class="wrap">
+    <header class="hero">
+      <div>
+        <p class="kicker">Ardutaller · STEAMtaller · WebSerial ESPTool</p>
+        <h1>Backup ESP32 - www.steamtaller.es · by <a href="http://www.franciscojose.es/" target="_blank" style="color:inherit;text-decoration:none;">franciscojose.es</a></h1>
+        <p class="lead">Herramienta web para hacer una copia <strong>.bin</strong> completa de la memoria Flash de una ESP32 y restaurarla posteriormente. Esto es una aplicación gratuita. No nos hacemos responsables de lo que el usuario pueda hacer con la aplicación. Probado en los siguientes dispositivos: CoCube, ED1, ESP32STEAMakers, micro:STEAMakers, LiLygo ESPECTRUM....</p>
+      </div>
+      <div class="badge">Chrome / Edge<br><span>Web Serial</span></div>
+    </header>
+
+    <section class="notice">
+      <strong>AVISO IMPORTANTE:</strong> Usa esta aplicación, sólo si tienes conocimientos sobre su uso. Te recomiendo revisar la <a href="https://www.steamakerstaller.com.es/espbackup" target="_blank" rel="noopener" style="color:inherit;font-weight:800;">documentación</a>. Úsala solo con placas propias o con autorización. Preparado para placas basadas en ESP32 y en las que suele utilizarse Flash de 4 MB. La restauración y el borrado modifican completamente la placa.
+    </section>
+
+    <section class="grid">
+
+      <article class="card">
+        <h2>1. Conexión</h2>
+        <div class="row">
+          <label>Baudrate bootloader</label>
+          <select id="baudrate">
+            <option value="921600" selected>921600</option>
+            <option value="460800">460800</option>
+            <option value="230400">230400</option>
+            <option value="115200">115200</option>
+          </select>
+        </div>
+        <button id="btnConnect" class="primary">Conectar ESP32</button>
+        <button id="btnDisconnect">Desconectar</button>
+        <p id="status" class="status">Sin conectar</p>
+      </article>
+
+
+      <article class="card">
+        <h2>2. Copia de seguridad</h2>
+        <div class="row">
+          <label>Dirección inicial</label>
+          <input id="readAddr" value="0x000000" />
+        </div>
+        <div class="row">
+          <label>Tamaño Flash</label>
+          <select id="flashSize">
+            <option value="0x100000">1 MB</option>
+            <option value="0x200000">2 MB</option>
+            <option value="0x400000" selected>4 MB — ESP32 habitual</option>
+            <option value="0x800000">8 MB</option>
+            <option value="0x1000000">16 MB</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Bloque de lectura</label>
+          <select id="chunkSize">
+            <option value="0x1000">4 KB, más compatible</option>
+            <option value="0x4000" selected>16 KB, recomendado</option>
+            <option value="0x10000">64 KB, más rápido</option>
+          </select>
+        </div>
+        <button id="btnBackup" class="primary">Leer Flash y descargar backup.bin</button>
+        <progress id="progress" value="0" max="100"></progress>
+        <p id="progressText">0%</p>
+      </article>
+
+
+      <article class="card">
+        <h2>3. Comunicación serie</h2>
+
+        <div class="serial-terminal">
+          <h3>Monitor serie WebSerial</h3>
+          <p>Permite enviar texto o comandos a la ESP32 y ver la respuesta por el puerto serie. Útil para configurar, probar o depurar tus programas.</p>
+
+          <div class="row">
+            <label>Baudrate comunicación</label>
+            <select id="serialBaudrate">
+              <option value="115200" selected>115200</option>
+              <option value="9600">9600</option>
+              <option value="57600">57600</option>
+              <option value="230400">230400</option>
+              <option value="460800">460800</option>
+              <option value="921600">921600</option>
+            </select>
+          </div>
+
+          <button id="btnSerialConnect" class="primary" type="button">Conectar monitor serie</button>
+          <button id="btnSerialDisconnect" type="button">Desconectar serie</button>
+          <button id="btnSerialClear" type="button">Limpiar monitor</button>
+
+          <div class="serial-terminal-grid">
+            <div class="row">
+              <label>Texto o comando para enviar</label>
+              <input id="serialInput" placeholder="Ejemplo: WIFI:MiRed,MiPassword" />
+            </div>
+            <button id="btnSerialSend" class="primary" type="button">Enviar</button>
+          </div>
+
+          <label class="check"><input id="serialNewline" type="checkbox" checked /> Añadir salto de línea al enviar</label>
+
+          <p id="serialStatus" class="serial-status">Monitor serie sin conectar</p>
+          <pre id="serialMonitor" class="serial-monitor"></pre>
+        </div>
+      </article>
+
+
+      <article class="card">
+        <h2>4. Consola</h2>
+        <div class="console-actions">
+          <button id="btnClear">Limpiar consola</button>
+          <button id="btnReset">Reset</button>
+        </div>
+        <pre id="log"></pre>
+      </article>
+
+
+      <article class="card danger-zone">
+        <h2>5. Restaurar o borrar</h2>
+        <div class="row">
+          <label>Archivo .bin desde tu ordenador</label>
+          <input id="binFile" type="file" accept=".bin,application/octet-stream" />
+        </div>
+
+        <div class="online-firmware-box">
+          <h3>O cargar firmware online</h3>
+          <p>Lee una lista <code>firmwares.json</code> alojada en GitHub y permite cargar un archivo <strong>.bin</strong> directamente desde Internet. Debes seleccionar la placa correcta y el firmware correspondiente.</p>
+
+          <div class="row">
+            <label>URL del firmwares.json</label>
+            <input id="firmwareJsonUrl" value="https://raw.githubusercontent.com/ardutaller/ardutaller-firmwares/main/firmwares.json" />
+          </div>
+
+          <div class="firmware-actions">
+            <button id="btnLoadFirmwareList" class="small-btn" type="button">Cargar lista</button>
+            <a class="link-like" href="https://github.com/ardutaller/ardutaller-firmwares" target="_blank" rel="noopener">Repositorio</a>
+          </div>
+
+          <div class="row">
+            <label>Firmware disponible (Elegir Placa y Tipo versión)</label>
+            <select id="remoteFirmware">
+              <option value="">Primero carga la lista de firmwares</option>
+            </select>
+          </div>
+
+          <button id="btnLoadRemoteBin" class="primary small-btn" type="button">Usar este .bin online</button>
+          <div id="firmwareMeta" class="firmware-meta">Pendiente de cargar lista online.</div>
+        </div>
+        <div class="row">
+          <label>Dirección escritura</label>
+          <input id="writeAddr" value="0x000000" />
+        </div>
+        <label class="check"><input id="eraseBefore" type="checkbox" checked /> Borrar antes de restaurar</label>
+        <button id="btnRestore" class="danger">Restaurar .bin</button>
+        <button id="btnErase" class="danger ghost">Borrar Flash completa</button>
+      </article>
+
+
+    </section>
+
+
+
+    <div id="dangerConfirmModal" class="danger-modal-overlay" aria-hidden="true">
+      <div class="danger-modal" role="dialog" aria-modal="true" aria-labelledby="dangerConfirmTitle">
+        <div class="danger-modal-header">
+          <div>
+            <h2 id="dangerConfirmTitle" class="danger-modal-title">Advertencia importante</h2>
+            <p id="dangerConfirmSubtitle" class="danger-modal-subtitle">Esta operación puede modificar completamente la memoria Flash de la placa.</p>
+          </div>
+          <button id="dangerConfirmClose" class="danger-modal-close" type="button" title="Cancelar">×</button>
+        </div>
+        <div class="danger-modal-body">
+          <ul class="danger-warning-list" id="dangerWarningList"></ul>
+          <p><strong>Continúa sólo si has elegido el archivo correcto, la placa correcta y tienes claro el riesgo.</strong></p>
+          <div class="danger-modal-actions">
+            <button id="dangerConfirmCancel" type="button">Cancelar</button>
+            <button id="dangerConfirmContinue" class="danger" type="button">Entiendo el riesgo y quiero continuar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="dangerProgressModal" class="danger-modal-overlay" aria-hidden="true">
+      <div class="danger-modal" role="dialog" aria-modal="true" aria-labelledby="dangerProgressTitle">
+        <div class="danger-modal-header">
+          <div>
+            <h2 id="dangerProgressTitle" class="danger-modal-title">Operación en curso</h2>
+            <p class="danger-modal-subtitle">No desconectes la placa ni cierres el navegador hasta que termine.</p>
+          </div>
+          <button id="dangerProgressClose" class="danger-modal-close" type="button" title="Ocultar ventana">×</button>
+        </div>
+        <div class="danger-modal-body">
+          <p id="dangerProgressCopy" class="modal-progress-copy">Mostrando la consola de progreso en tiempo real.</p>
+          <pre id="dangerProgressLog" class="modal-console"></pre>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <a href="https://www.ardutaller.com.es/" target="_blank" style="color:inherit;text-decoration:none;font-weight:700;">Diseño Ardutaller</a> · Basado en <code>esptool-js</code> de Espressif. Funciona en Chrome/Edge con Web Serial y HTTPS, como GitHub Pages.
+    </footer>
+  </main>
+
+
+  <script>
+    const firmwareSelect = document.getElementById("remoteFirmware");
+    const firmwareMeta = document.getElementById("firmwareMeta");
+    const firmwareJsonUrl = document.getElementById("firmwareJsonUrl");
+    const writeAddrInput = document.getElementById("writeAddr");
+
+    let firmwareCatalog = [];
+
+    function normalizeFirmwareCatalog(data) {
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.firmwares)) return data.firmwares;
+      return [];
+    }
+
+    function getFirstBuild(item) {
+      return item?.builds?.[0] || null;
+    }
+
+    function getFirstPart(item) {
+      return getFirstBuild(item)?.parts?.[0] || null;
+    }
+
+    function firmwareName(item, index) {
+      return item.nombre || item.name || item.title || item.titulo || `Firmware ${index + 1}`;
+    }
+
+    function firmwareDevice(item) {
+      return item.dispositivo || item.device || item.placa || item.board || "";
+    }
+
+    function firmwareChipFamily(item) {
+      return getFirstBuild(item)?.chipFamily || item.chipFamily || item.chip || "";
+    }
+
+    function firmwareDescription(item) {
+      return item.descripcion || item.description || "";
+    }
+
+    function firmwareDate(item) {
+      return item.fecha || item.date || "";
+    }
+
+    function firmwareOffset(item) {
+      const offset = getFirstPart(item)?.offset ?? item.offset ?? 0;
+      if (typeof offset === "number") return offset;
+      if (typeof offset === "string") {
+        if (offset.startsWith("0x")) return parseInt(offset, 16);
+        return Number(offset) || 0;
+      }
+      return 0;
+    }
+
+    function firmwareUrl(item) {
+      return getFirstPart(item)?.path ||
+             item.archivo ||
+             item.url ||
+             item.file ||
+             item.bin ||
+             item.href ||
+             "";
+    }
+
+    function formatOffset(offset) {
+      return "0x" + Number(offset || 0).toString(16).padStart(6, "0");
+    }
+
+    function firmwareLabel(item, index) {
+      const chip = firmwareChipFamily(item) || "Chip no indicado";
+      const device = firmwareDevice(item);
+      const name = firmwareName(item, index);
+      const version = item.version ? `v${item.version}` : "";
+      return [chip, device, name, version].filter(Boolean).join(" | ");
+    }
+
+    function isValidFirmwareItem(item) {
+      return Boolean(firmwareUrl(item));
+    }
+
+    function showFirmwareMeta(item) {
+      if (!item) {
+        firmwareMeta.textContent = "Selecciona un firmware de la lista.";
+        return;
+      }
+
+      const parts = [];
+      const chip = firmwareChipFamily(item);
+      const device = firmwareDevice(item);
+      const offset = firmwareOffset(item);
+      const url = firmwareUrl(item);
+
+      parts.push(`<strong>Nombre:</strong> ${firmwareName(item, 0)}`);
+
+      if (device) parts.push(`<strong>Dispositivo:</strong> ${device}`);
+      if (chip) parts.push(`<strong>Chip family:</strong> ${chip}`);
+      if (item.version) parts.push(`<strong>Versión:</strong> ${item.version}`);
+      if (firmwareDate(item)) parts.push(`<strong>Fecha:</strong> ${firmwareDate(item)}`);
+      if (firmwareDescription(item)) parts.push(`<strong>Descripción:</strong> ${firmwareDescription(item)}`);
+
+      parts.push(`<strong>Offset escritura:</strong> ${formatOffset(offset)}`);
+
+      if (url) {
+        parts.push(`<strong>Archivo:</strong> ${url.split("/").pop()}`);
+      }
+
+      if (chip) {
+        parts.push(`<strong>Importante:</strong> comprueba que tu placa sea ${chip} antes de restaurar.`);
+      }
+
+      firmwareMeta.innerHTML = parts.join("<br>");
+      if (writeAddrInput) writeAddrInput.value = formatOffset(offset);
+    }
+
+    document.getElementById("btnLoadFirmwareList").addEventListener("click", async () => {
+      try {
+        firmwareMeta.textContent = "Cargando lista de firmwares...";
+        firmwareSelect.innerHTML = '<option value="">Cargando...</option>';
+
+        const response = await fetch(firmwareJsonUrl.value.trim(), { cache: "no-store" });
+        if (!response.ok) throw new Error("No se pudo cargar el firmwares.json");
+
+        const data = await response.json();
+        firmwareCatalog = normalizeFirmwareCatalog(data).filter(isValidFirmwareItem);
+
+        if (!firmwareCatalog.length) {
+          firmwareSelect.innerHTML = '<option value="">No se encontraron firmwares válidos</option>';
+          firmwareMeta.innerHTML =
+            'El JSON debe contener firmwares en formato antiguo ' +
+            '(<code>nombre</code> + <code>archivo</code>) o en formato ESP Web Tools ' +
+            '(<code>name</code> + <code>builds</code> + <code>chipFamily</code> + <code>parts</code>).';
+          return;
+        }
+
+        firmwareSelect.innerHTML = '<option value="">Selecciona un firmware</option>';
+
+        firmwareCatalog.forEach((item, index) => {
+          const option = document.createElement("option");
+          option.value = String(index);
+          option.textContent = firmwareLabel(item, index);
+          firmwareSelect.appendChild(option);
+        });
+
+        firmwareMeta.textContent = `Lista cargada correctamente: ${firmwareCatalog.length} firmware(s) disponibles.`;
+      } catch (error) {
+        firmwareSelect.innerHTML = '<option value="">Error al cargar la lista</option>';
+        firmwareMeta.textContent = "Error: " + error.message;
+      }
+    });
+
+    firmwareSelect.addEventListener("change", () => {
+      const item = firmwareCatalog[Number(firmwareSelect.value)];
+      showFirmwareMeta(item);
+    });
+
+    document.getElementById("btnLoadRemoteBin").addEventListener("click", async () => {
+      try {
+        const item = firmwareCatalog[Number(firmwareSelect.value)];
+        if (!item) {
+          firmwareMeta.textContent = "Selecciona primero un firmware online.";
+          return;
+        }
+
+        const url = firmwareUrl(item);
+        const offset = firmwareOffset(item);
+        const chip = firmwareChipFamily(item);
+
+        firmwareMeta.textContent = "Descargando archivo .bin online...";
+
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) throw new Error("No se pudo descargar el archivo .bin");
+
+        const blob = await response.blob();
+        const filename = (
+          item.filename ||
+          item.nombre_archivo ||
+          url.split("/").pop() ||
+          "firmware.bin"
+        ).replace(/[^\w.\-() ]+/g, "_");
+
+        const file = new File([blob], filename, { type: "application/octet-stream" });
+
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        document.getElementById("binFile").files = dataTransfer.files;
+
+        if (writeAddrInput) writeAddrInput.value = formatOffset(offset);
+
+        firmwareMeta.innerHTML =
+          `Firmware cargado: <strong>${filename}</strong><br>` +
+          `Chip family: <strong>${chip || "no indicado"}</strong><br>` +
+          `Offset escritura: <strong>${formatOffset(offset)}</strong><br>` +
+          `Ahora puedes pulsar <strong>Restaurar .bin</strong>.`;
+      } catch (error) {
+        firmwareMeta.textContent = "Error: " + error.message;
+      }
+    });
+  </script>
+
+
+
+  <script>
+    let serialPort = null;
+    let serialReader = null;
+    let serialWriter = null;
+    let serialKeepReading = false;
+
+    const serialStatus = document.getElementById("serialStatus");
+    const serialMonitor = document.getElementById("serialMonitor");
+
+    function serialLog(text) {
+      const now = new Date().toLocaleTimeString();
+      serialMonitor.textContent += `[${now}] ${text}`;
+      serialMonitor.scrollTop = serialMonitor.scrollHeight;
+    }
+
+    async function readSerialLoop() {
+      const textDecoder = new TextDecoderStream();
+      serialPort.readable.pipeTo(textDecoder.writable).catch(() => {});
+      serialReader = textDecoder.readable.getReader();
+
+      try {
+        while (serialKeepReading) {
+          const { value, done } = await serialReader.read();
+          if (done) break;
+          if (value) serialLog(value);
+        }
+      } catch (error) {
+        serialLog(`\n[Error lectura serie] ${error.message}\n`);
+      } finally {
+        try { serialReader.releaseLock(); } catch(e) {}
+      }
+    }
+
+    document.getElementById("btnSerialConnect").addEventListener("click", async () => {
+      try {
+        if (!("serial" in navigator)) {
+          serialStatus.textContent = "Web Serial no está disponible. Usa Chrome o Edge con HTTPS.";
+          return;
+        }
+
+        serialPort = await navigator.serial.requestPort();
+        const baudRate = Number(document.getElementById("serialBaudrate").value || 115200);
+        await serialPort.open({ baudRate });
+
+        const textEncoder = new TextEncoderStream();
+        textEncoder.readable.pipeTo(serialPort.writable).catch(() => {});
+        serialWriter = textEncoder.writable.getWriter();
+
+        serialKeepReading = true;
+        readSerialLoop();
+
+        serialStatus.textContent = `Monitor serie conectado a ${baudRate} baudios`;
+        serialLog(`\n--- Conectado a ${baudRate} baudios ---\n`);
+      } catch (error) {
+        serialStatus.textContent = "Error al conectar monitor serie";
+        serialLog(`\n[Error conexión serie] ${error.message}\n`);
+      }
+    });
+
+    document.getElementById("btnSerialSend").addEventListener("click", async () => {
+      try {
+        if (!serialWriter) {
+          serialStatus.textContent = "Primero conecta el monitor serie.";
+          return;
+        }
+
+        let text = document.getElementById("serialInput").value;
+        if (document.getElementById("serialNewline").checked) text += "\n";
+
+        await serialWriter.write(text);
+        serialLog(`\n> ${text}`);
+      } catch (error) {
+        serialLog(`\n[Error envío serie] ${error.message}\n`);
+      }
+    });
+
+    document.getElementById("serialInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        document.getElementById("btnSerialSend").click();
+      }
+    });
+
+    document.getElementById("btnSerialClear").addEventListener("click", () => {
+      serialMonitor.textContent = "";
+    });
+
+    document.getElementById("btnSerialDisconnect").addEventListener("click", async () => {
+      try {
+        serialKeepReading = false;
+
+        if (serialReader) {
+          try { await serialReader.cancel(); } catch(e) {}
+          serialReader = null;
+        }
+
+        if (serialWriter) {
+          try { serialWriter.releaseLock(); } catch(e) {}
+          serialWriter = null;
+        }
+
+        if (serialPort) {
+          try { await serialPort.close(); } catch(e) {}
+          serialPort = null;
+        }
+
+        serialStatus.textContent = "Monitor serie desconectado";
+        serialLog("\n--- Desconectado ---\n");
+      } catch (error) {
+        serialLog(`\n[Error desconexión serie] ${error.message}\n`);
+      }
+    });
+  </script>
+
+
+
+
+  <script>
+    /*
+      Pantalla emergente controlada de forma estricta.
+      SÍ se muestra: Restaurar .bin y Borrar Flash completa.
+      NO se muestra: Conectar ESP32, monitor serie, cargar lista JSON ni usar .bin online.
+    */
+    (() => {
+      const restoreBtn = document.getElementById("btnRestore");
+      const eraseBtn = document.getElementById("btnErase");
+
+      const neverPopupButtons = [
+        document.getElementById("btnConnect"),
+        document.getElementById("btnSerialConnect"),
+        document.getElementById("btnLoadFirmwareList"),
+        document.getElementById("btnLoadRemoteBin")
+      ].filter(Boolean);
+
+      const confirmModal = document.getElementById("dangerConfirmModal");
+      const progressModal = document.getElementById("dangerProgressModal");
+      const confirmTitle = document.getElementById("dangerConfirmTitle");
+      const confirmSubtitle = document.getElementById("dangerConfirmSubtitle");
+      const warningList = document.getElementById("dangerWarningList");
+      const confirmContinue = document.getElementById("dangerConfirmContinue");
+      const confirmCancel = document.getElementById("dangerConfirmCancel");
+      const confirmClose = document.getElementById("dangerConfirmClose");
+      const progressClose = document.getElementById("dangerProgressClose");
+      const progressTitle = document.getElementById("dangerProgressTitle");
+      const progressCopy = document.getElementById("dangerProgressCopy");
+      const progressLog = document.getElementById("dangerProgressLog");
+      const mainLog = document.getElementById("log");
+
+      let pendingButton = null;
+      let dangerPopupAllowed = false;
+      let progressEnabled = false;
+
+      const warnings = {
+        restore: {
+          title: "Advertencia antes de restaurar el .bin",
+          subtitle: "Vas a escribir un firmware en la memoria Flash de la placa.",
+          progressTitle: "Restaurando archivo .bin",
+          progressCopy: "Restauración en curso. No desconectes la ESP32 ni cierres esta página.",
+          items: [
+            "Si el archivo .bin no corresponde con la placa o con su chipFamily, la placa puede dejar de arrancar.",
+            "La restauración puede sobrescribir el programa, la configuración WiFi y otros datos guardados en la Flash.",
+            "Comprueba el offset de escritura, normalmente 0x000000 para una imagen completa de backup.",
+            "Es recomendable tener una copia de seguridad antes de continuar."
+          ]
+        },
+        erase: {
+          title: "Advertencia antes de borrar la Flash completa",
+          subtitle: "Vas a borrar completamente la memoria Flash de la placa.",
+          progressTitle: "Borrando Flash completa",
+          progressCopy: "Borrado en curso. No desconectes la ESP32 ni cierres esta página.",
+          items: [
+            "Se eliminará el firmware actual y la placa puede quedar sin programa hasta que cargues uno nuevo.",
+            "Se perderán configuraciones guardadas, credenciales WiFi y datos almacenados en la Flash.",
+            "Usa esta opción sólo si sabes cómo volver a cargar un firmware válido después.",
+            "No desconectes la placa durante el borrado."
+          ]
+        }
+      };
+
+      function openModal(modal) {
+        if (!modal) return;
+        if (!dangerPopupAllowed) return;
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeModal(modal) {
+        if (!modal) return;
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+      }
+
+      function closeAllDangerModals() {
+        closeModal(confirmModal);
+        closeModal(progressModal);
+      }
+
+      function syncProgressLog() {
+        if (!progressEnabled || !progressLog || !mainLog) return;
+        progressLog.textContent = mainLog.textContent || "Esperando mensajes de la consola...";
+        progressLog.scrollTop = progressLog.scrollHeight;
+      }
+
+      function showWarning(kind, button) {
+        const data = warnings[kind];
+        pendingButton = button;
+        progressEnabled = false;
+        dangerPopupAllowed = true;
+        confirmTitle.textContent = data.title;
+        confirmSubtitle.textContent = data.subtitle;
+        warningList.innerHTML = data.items.map(item => `<li>${item}</li>`).join("");
+        confirmContinue.dataset.kind = kind;
+        openModal(confirmModal);
+      }
+
+      function startProgress(kind) {
+        const data = warnings[kind];
+        dangerPopupAllowed = true;
+        progressEnabled = true;
+        progressTitle.textContent = data.progressTitle;
+        progressCopy.textContent = data.progressCopy;
+        syncProgressLog();
+        openModal(progressModal);
+      }
+
+      function interceptDangerClick(kind, event) {
+        const button = event.currentTarget;
+
+        if (button.dataset.dangerConfirmed === "1") {
+          delete button.dataset.dangerConfirmed;
+          startProgress(kind);
+          return;
+        }
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        showWarning(kind, button);
+      }
+
+      // Botones donde NUNCA debe aparecer la pantalla emergente.
+      neverPopupButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          dangerPopupAllowed = false;
+          progressEnabled = false;
+          pendingButton = null;
+          closeAllDangerModals();
+          setTimeout(closeAllDangerModals, 0);
+          setTimeout(closeAllDangerModals, 80);
+        }, true);
+      });
+
+      if (restoreBtn) {
+        restoreBtn.addEventListener("click", interceptDangerClick.bind(null, "restore"), true);
+      }
+
+      if (eraseBtn) {
+        eraseBtn.addEventListener("click", interceptDangerClick.bind(null, "erase"), true);
+      }
+
+      confirmContinue?.addEventListener("click", () => {
+        if (!pendingButton) return;
+        const button = pendingButton;
+        pendingButton = null;
+        closeModal(confirmModal);
+        button.dataset.dangerConfirmed = "1";
+        button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
+      });
+
+      [confirmCancel, confirmClose].forEach(btn => {
+        btn?.addEventListener("click", () => {
+          pendingButton = null;
+          progressEnabled = false;
+          dangerPopupAllowed = false;
+          closeModal(confirmModal);
+        });
+      });
+
+      progressClose?.addEventListener("click", () => {
+        closeModal(progressModal);
+      });
+
+      if (mainLog) {
+        const logObserver = new MutationObserver(syncProgressLog);
+        logObserver.observe(mainLog, { childList: true, characterData: true, subtree: true });
+      }
+
+      // Seguro extra: si algún código externo intenta abrir estos modales en otra acción,
+      // se cierran automáticamente salvo que venga de Restaurar .bin o Borrar Flash completa.
+      [confirmModal, progressModal].forEach(modal => {
+        if (!modal) return;
+        const modalObserver = new MutationObserver(() => {
+          if (!dangerPopupAllowed && modal.classList.contains("is-open")) {
+            closeModal(modal);
+          }
+        });
+        modalObserver.observe(modal, { attributes: true, attributeFilter: ["class"] });
+      });
+    })();
+  </script>
+
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
