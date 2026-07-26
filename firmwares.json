@@ -42,25 +42,6 @@
       ]
     },
     {
-      "name": "CoCube Arkanoid / Breakout",
-      "version": "1.0",
-      "category": "CoCube",
-      "device": "CoCube",
-      "image": "https://raw.githubusercontent.com/ardutaller/images/main/cocube.png",
-      "description": "Juego Arkanoid / Breakout para CoCube.",
-      "builds": [
-        {
-          "chipFamily": "ESP32",
-          "parts": [
-            {
-              "path": "https://raw.githubusercontent.com/ardutaller/ardutaller-firmwares/main/COCUBE-arkanoid-breakout.bin",
-              "offset": 0
-            }
-          ]
-        }
-      ]
-    },
-    {
       "name": "ED1 Ardutaller 2025",
       "version": "2025",
       "category": "ED1",
